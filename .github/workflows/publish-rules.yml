@@ -1,18 +1,26 @@
 name: publish-rules
 
-# Manual trigger only. There is no scheduled run.
-# Stage 1 (build) downloads, builds and signs the rules. The output is kept as an
-# artifact for 7 days so it can be inspected.
-# Stage 2 (publish) runs only when confirm == PUBLISH and the "production"
-# environment has been approved by a reviewer.
+# Weekly scheduled build: Monday 15:00 GMT-4 (19:00 UTC).
+# Scheduled and DRY runs build, sign and report only. They never publish, and they
+# open a GitHub Issue (scheduled runs) with a comparison against the published version.
+# Publishing is a separate manual run: confirm=PUBLISH and source_run=<id of a reviewed build>.
+# The publish job re-verifies that reviewed artifact and needs approval of the
+# "production" environment before it pushes to hidefbi/rules-old.
 
 on:
+  schedule:
+    - cron: '0 19 * * 1'
   workflow_dispatch:
     inputs:
       confirm:
-        description: 'Type PUBLISH to publish. Any other value builds only.'
+        description: 'DRY = build and report only; PUBLISH = publish the reviewed build in source_run'
         required: true
         default: 'DRY'
+        type: string
+      source_run:
+        description: 'Run id of a reviewed build (required for PUBLISH)'
+        required: false
+        default: ''
         type: string
 
 permissions:
@@ -32,8 +40,12 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    if: github.event.inputs.confirm != 'PUBLISH'
+    runs-on: ubuntu-24.04
     timeout-minutes: 120
+    permissions:
+      contents: read
+      issues: write
     steps:
       - uses: actions/checkout@v4
 
@@ -110,23 +122,62 @@ jobs:
           rm -f "$KEYFILE"
           ls -l rules-publish
 
+      - name: Build change report
+        run: python3 diff_report.py "$OUTDIR" "${RULES_RAW}/blocklists" > report.md && cat report.md
+
+      - name: Open issue with the report (scheduled runs only)
+        if: github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh issue create -R "$GITHUB_REPOSITORY" \
+            --title "Weekly rules build ${{ github.run_id }}: review before publishing" \
+            --body-file report.md
+
       - uses: actions/upload-artifact@v4
         with:
           name: rules-publish
           path: rules-publish
-          retention-days: 7
+          retention-days: 30
 
   publish:
-    needs: build
     if: github.event.inputs.confirm == 'PUBLISH'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment: production
     timeout-minutes: 30
+    permissions:
+      contents: read
+      actions: read
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: rules-publish
-          path: rules-publish
+      - name: Require a reviewed build
+        env:
+          SOURCE_RUN: ${{ github.event.inputs.source_run }}
+        run: |
+          test -n "$SOURCE_RUN" || { echo "source_run is required to publish"; exit 1; }
+          echo "publishing the reviewed build from run $SOURCE_RUN"
+
+      - uses: actions/checkout@v4
+
+      - name: Download the reviewed artifact
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_RUN: ${{ github.event.inputs.source_run }}
+        run: |
+          gh run download "$SOURCE_RUN" -R "$GITHUB_REPOSITORY" -n rules-publish -D rules-publish
+
+      - name: Verify signature and file hashes
+        run: |
+          base64 -d rules-publish/index.json.sig > sig.der
+          openssl dgst -sha256 -verify public.pem -signature sig.der rules-publish/index.json
+          python3 - <<'PY'
+          import hashlib, json
+          idx = json.load(open('rules-publish/index.json'))
+          for name, meta in idx['files'].items():
+              data = open('rules-publish/' + name, 'rb').read()
+              assert hashlib.sha256(data).hexdigest() == meta['sha256'], name
+              assert len(data) == meta['size'], name
+          print('hashes ok:', sorted(idx['files']))
+          PY
 
       - name: Publish to rules-old (single squashed commit)
         env:
