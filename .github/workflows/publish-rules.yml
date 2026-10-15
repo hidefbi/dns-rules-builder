@@ -1,0 +1,148 @@
+name: publish-rules
+
+# Manual trigger only. There is no scheduled run.
+# Stage 1 (build) downloads, builds and signs the rules. The output is kept as an
+# artifact for 7 days so it can be inspected.
+# Stage 2 (publish) runs only when confirm == PUBLISH and the "production"
+# environment has been approved by a reviewer.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type PUBLISH to publish. Any other value builds only.'
+        required: true
+        default: 'DRY'
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-rules
+  cancel-in-progress: false
+
+env:
+  BLCONFIG: config.json
+  CODEC: b8
+  INDIR: files
+  OUTDIR: out
+  EXPECTED_LISTS: '145'
+  RULES_RAW: https://raw.githubusercontent.com/hidefbi/rules-old/main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          pip install -q aiohttp
+          npm ci --ignore-scripts
+
+      - name: Check config
+        run: |
+          python3 - <<'PY'
+          import json
+          conf = json.load(open('config.json'))['conf']
+          n = int('${{ env.EXPECTED_LISTS }}')
+          assert len(conf) == n, f'list count {len(conf)} != {n}'
+          assert not any('id' in e for e in conf), 'config must not contain "id"; ids are positional'
+          assert not any({'dead', 'ignore'} & set(e['pack']) for e in conf), 'dead/ignore list found'
+          print('config ok:', len(conf), 'lists')
+          PY
+
+      - name: Download lists
+        run: |
+          rm -rf "$INDIR" "$OUTDIR"
+          UNIX_EPOCH_SEC=$(date +%s) python3 download.py > download.log 2>&1
+          COUNT=$(find "$INDIR" -name '*.txt' | wc -l)
+          echo "downloaded files: $COUNT / expected: $EXPECTED_LISTS"
+          test "$COUNT" -eq "$EXPECTED_LISTS" || { tail -50 download.log; exit 1; }
+
+      - name: Build trie
+        env:
+          NODE_OPTIONS: --max-old-space-size=12288
+        run: |
+          UNIX_EPOCH_SEC=$(date +%s) node --expose-gc src/build.js > build.log 2>&1
+          test -s "$OUTDIR/td.txt" && test -s "$OUTDIR/rd.txt"
+
+      - name: Verify build
+        run: |
+          python3 - <<'PY'
+          import json, urllib.request
+          out = 'out'
+          bc = json.load(open(f'{out}/basicconfig.json'))
+          ft = json.load(open(f'{out}/filetag.json'))
+          n = int('${{ env.EXPECTED_LISTS }}')
+          vals = sorted(v['value'] for v in ft.values())
+          assert bc['useCodec6'] is False, 'codec must be b8 (useCodec6 false)'
+          assert vals == list(range(n)), 'list ids must be contiguous 0..N-1 with no gaps'
+          zero = [v['vname'] for v in ft.values() if v['entries'] == 0]
+          assert not zero, f'lists with zero entries: {zero}'
+          ts = int(bc['timestamp'].split('/')[1])
+          try:
+              last = json.load(urllib.request.urlopen('${{ env.RULES_RAW }}/update/blocklists'))['latest']
+          except Exception as e:
+              raise SystemExit(f'could not read the online version; stopping: {e}')
+          assert ts > last, f'new timestamp {ts} must be greater than online {last} (anti-rollback)'
+          print('verify ok: timestamp', ts, 'lists', n, 'online', last)
+          PY
+
+      - name: Sign
+        env:
+          PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        run: |
+          umask 077
+          KEYFILE="$RUNNER_TEMP/private.pem"
+          printf '%s\n' "$PRIVATE_KEY" > "$KEYFILE"
+          SRC="$OUTDIR" CFG=config.json KEY="$KEYFILE" PUB=public.pem OUT=rules-publish python3 ci_sign.py
+          rm -f "$KEYFILE"
+          ls -l rules-publish
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rules-publish
+          path: rules-publish
+          retention-days: 7
+
+  publish:
+    needs: build
+    if: github.event.inputs.confirm == 'PUBLISH'
+    runs-on: ubuntu-latest
+    environment: production
+    timeout-minutes: 30
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: rules-publish
+          path: rules-publish
+
+      - name: Publish to rules-old (single squashed commit)
+        env:
+          RULES_TOKEN: ${{ secrets.RULES_TOKEN }}
+        run: |
+          set -euo pipefail
+          NEW=$(python3 -c "import json;print(json.load(open('rules-publish/update/blocklists'))['latest'])")
+          LAST=$(curl -fsSL "${RULES_RAW}/update/blocklists" | python3 -c "import sys,json;print(json.load(sys.stdin)['latest'])")
+          test "$NEW" -gt "$LAST" || { echo "timestamp did not increase; stopping"; exit 1; }
+          rm -rf site && mkdir site && cp -R rules-publish/. site/
+          cd site
+          git init -q -b main
+          git config user.name "rules-publisher"
+          git config user.email "rules-publisher@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Rules set $NEW"
+          git remote add origin "https://x-access-token:${RULES_TOKEN}@github.com/hidefbi/rules-old.git"
+          git push -q -f origin main
+          echo "published $NEW"

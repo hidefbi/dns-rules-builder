@@ -1,0 +1,11 @@
+node_modules/
+files*/
+out*/
+rules-publish/
+rules-check/
+logs/
+*.log
+*.jks
+*.pem
+!public.pem
+*.apk
