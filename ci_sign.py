@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 # Build the publish directory from a finished build: copy files, write the
-# update manifest, index.json (with sha256 and size of every file), sign it
-# with ECDSA P-256 / SHA-256 and verify the signature.
+# update marker and index.json (sha256 and size of every data file), sign
+# index.json with ECDSA P-256 / SHA-256, verify the signature, and generate
+# README.md from publish/README.head.md plus the list table.
 #
 # Environment variables:
 #   SRC   build output directory (default: ./out)
@@ -23,6 +24,7 @@ CFG = os.environ.get('CFG', os.path.join(ROOT, 'config.json'))
 KEY = os.environ['KEY']
 PUB = os.environ.get('PUB', os.path.join(ROOT, 'public.pem'))
 OUT = os.environ.get('OUT', os.path.join(ROOT, 'rules-publish'))
+README_HEAD = os.path.join(ROOT, 'publish', 'README.head.md')
 
 
 def p(name):
@@ -61,6 +63,7 @@ assert file_hash(p('blocklists'), 'md5') == bc['ftmd5'], 'blocklists md5 mismatc
 with open(p('update/blocklists'), 'w') as f:
     f.write(json.dumps({'version': 1, 'update': True, 'latest': ts}) + '\n')
 open(p('.nojekyll'), 'w').close()
+shutil.copyfile(PUB, p('public.pem'))
 
 ft = json.load(open(os.path.join(SRC, 'filetag.json')))
 sources = []
@@ -100,23 +103,16 @@ with tempfile.TemporaryDirectory() as tmp:
 print('signature check:', result.stdout.strip(), result.stderr.strip())
 assert result.returncode == 0 and 'Verified OK' in result.stdout, 'signature verification failed'
 
-# README listing every list and its upstream source.
+# README.md: static head from the builder repository plus the generated list table.
 conf = json.load(open(CFG))['conf']
-lines = [
-    '# dns-rules',
-    '',
-    'Personal build of public DNS blocklists, compiled with the MPL-2.0 '
-    'serverless-dns/blocklists builder.',
-    'Every list belongs to its original authors and keeps its own license; '
-    'see the upstream URL.',
-    '',
-    '| List | Group | Upstream |',
-    '|---|---|---|',
-]
-for e in conf:
+with open(README_HEAD, encoding='utf-8') as f:
+    head = f.read().rstrip() + '\n'
+table = ['', '## Lists (%d)' % len(conf), '',
+         '| # | List | Group | Upstream |', '|---:|---|---|---|']
+for idx, e in enumerate(conf):
     urls = e['url'] if isinstance(e['url'], list) else [e['url']]
-    lines.append('| %s | %s | %s |' % (e['vname'], e.get('group', ''), '<br>'.join(urls)))
-with open(p('README.md'), 'w') as f:
-    f.write('\n'.join(lines) + '\n')
+    table.append('| %d | %s | %s | %s |' % (idx, e['vname'], e.get('group', ''), '<br>'.join(urls)))
+with open(p('README.md'), 'w', encoding='utf-8') as f:
+    f.write(head + '\n'.join(table) + '\n')
 
 print('sequence/latest =', ts)
