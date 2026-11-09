@@ -35,7 +35,7 @@ env:
   CODEC: b8
   INDIR: files
   OUTDIR: out
-  EXPECTED_LISTS: '145'
+  EXPECTED_LISTS: '139'
   RULES_RAW: https://raw.githubusercontent.com/hidefbi/rules-old/main
 
 jobs:
