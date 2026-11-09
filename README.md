@@ -56,7 +56,7 @@ Rules that must hold:
 
 ## Build locally
 
-Requirements: Node.js 22, Python 3.12, `pip install aiohttp`, `npm ci --ignore-scripts`,
+Requirements: Node.js 22, Python 3.12, `pip install -r requirements.txt`, `npm ci --ignore-scripts`,
 and about 14 GB of free RAM for the trie build.
 
 ```sh

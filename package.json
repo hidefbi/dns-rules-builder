@@ -25,7 +25,7 @@
     "trie": "github:serverless-dns/trie#v0.0.14"
   },
   "devDependencies": {
-    "@types/node": "^16.11.7",
+    "@types/node": "^22.20.5",
     "clinic": "^11.1.0",
     "eslint": "^8.5.0",
     "eslint-config-google": "^0.14.0",
