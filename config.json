@@ -178,12 +178,10 @@
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
    ],
    "pack": [
-    "torrents",
-    "piracy"
+    "dead"
    ],
    "level": [
-    0,
-    1
+    0
    ]
   },
   {
@@ -197,12 +195,10 @@
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
    ],
    "pack": [
-    "torrents",
-    "piracy"
+    "dead"
    ],
    "level": [
-    0,
-    1
+    0
    ]
   },
   {
@@ -216,12 +212,10 @@
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
    ],
    "pack": [
-    "torrents",
-    "piracy"
+    "dead"
    ],
    "level": [
-    0,
-    2
+    0
    ]
   },
   {
@@ -235,12 +229,10 @@
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
    ],
    "pack": [
-    "file-hosts",
-    "piracy"
+    "dead"
    ],
    "level": [
-    2,
-    1
+    0
    ]
   },
   {
@@ -254,12 +246,10 @@
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
    ],
    "pack": [
-    "file-hosts",
-    "piracy"
+    "dead"
    ],
    "level": [
-    2,
-    2
+    0
    ]
   },
   {
@@ -2221,11 +2211,9 @@
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/social.txt"
    ],
    "pack": [
-    "socialmedia",
-    "facebook"
+    "dead"
    ],
    "level": [
-    1,
     0
    ]
   }
