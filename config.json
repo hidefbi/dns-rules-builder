@@ -21,7 +21,7 @@
    "vname": "Safe Search Only",
    "group": "ParentalControl",
    "subg": "SafeSearch",
-   "format": "wildcard",
+   "format": "domains",
    "url": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/nosafesearch-onlydomains.txt",
    "pack": [],
    "level": []
