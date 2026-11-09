@@ -8,7 +8,7 @@ for Android. The bundle is published to `hidefbi/rules-old`, which the app downl
 
 | Path | Purpose |
 |---|---|
-| `config.json` | The list configuration: 145 lists, with no `id` fields |
+| `config.json` | The list configuration: 145 entries (133 enabled, 12 disabled), with no `id` fields |
 | `download.py` | Downloads every list in `config.json` |
 | `src/build.js` | Builds the trie from the downloaded lists |
 | `src/unames.json`, `src/log.js`, `src/ver.js` | Helpers used by `build.js` |
@@ -46,9 +46,13 @@ for Android. The bundle is published to `hidefbi/rules-old`, which the app downl
 
 Rules that must hold:
 
-- Do not add an `id` field. List ids are positional: the first list is `0`, and so on up
-  to `144`. The build fails if ids are not contiguous.
-- Do not use `dead` or `ignore` as a pack. The build rejects them.
+- Do not add an `id` field. List ids are positions in `conf`: the first entry is `0`.
+- Do not delete an entry to disable it. Set its pack to `["dead"]` and its level to `[0]`.
+  The entry keeps its position, so the ids after it do not change. Disabled entries are not
+  downloaded, built or published. The workflow checks that the built ids are exactly the
+  enabled positions.
+- `dead` and `ignore` are the only packs that exclude an entry. Do not use them for a list
+  that should be published.
 - Add new lists at the end of `conf`. Existing ids stay the same, so the app keeps its
   selections.
 - Removing or reordering a list shifts the ids after it. Every user must then re-select
@@ -123,7 +127,7 @@ The private key must not be committed. Only `public.pem` belongs in the reposito
 ## Maintenance notes
 
 - Upload to S3 or R2 is no longer used. Publication goes to `hidefbi/rules-old` only.
-- The upstream `blocklist-builder` workflows (`publish-blocklists`, `MakeTrie`) are disabled
-  and should be removed.
+- The upstream `blocklist-builder` workflows (`publish-blocklists`, `MakeTrie`) are not part
+  of this repository. Do not add them back.
 - Public repositories with no activity for 60 days have their scheduled workflows disabled.
   Keep the repository active, or re-enable the schedule manually.
