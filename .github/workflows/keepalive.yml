@@ -1,0 +1,34 @@
+name: keepalive
+
+# Writes the current month to a small file and pushes it, once a month.
+# The push keeps the repository active, so scheduled workflows stay enabled.
+on:
+  schedule:
+    - cron: '0 3 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+
+      - name: Record monthly heartbeat
+        run: |
+          mkdir -p .github/heartbeat
+          date -u +%Y-%m > .github/heartbeat/last
+          if git diff --quiet -- .github/heartbeat/last && git ls-files --error-unmatch .github/heartbeat/last >/dev/null 2>&1; then
+            echo "already recorded this month"
+            exit 0
+          fi
+          git config user.name "hidefbi"
+          git config user.email "325145828+hidefbi@users.noreply.github.com"
+          git add .github/heartbeat/last
+          git commit -m "Monthly heartbeat $(cat .github/heartbeat/last)"
+          git push origin HEAD:main
