@@ -3,27 +3,25 @@
   "name": "blocklists",
   "version": "0.1",
   "license": "MPL-2.0",
-  "description": "An opinionated collection of blocklists for RethinkDNS.",
+  "description": "Blocklist builder for DNS Control",
   "main": "./src/build.js",
   "type": "module",
   "scripts": {
-    "clean": "npm run clean",
+    "clean": "rm -rf files* out* logs rules-publish rules-check",
     "clean:node": "rm -rf node_modules/ package-lock.json",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky install"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/serverless-dns/blocklists.git"
+    "url": "git+https://github.com/hidefbi/dns-rules-builder.git"
   },
   "author": "",
   "bugs": {
-    "url": "https://github.com/serverless-dns/blocklists/issues"
+    "url": "https://github.com/hidefbi/dns-rules-builder/issues"
   },
-  "homepage": "https://github.com/serverless-dns/blocklists#readme",
+  "homepage": "https://github.com/hidefbi/dns-rules-builder#readme",
   "dependencies": {
-    "@serverless-dns/trie": "github:serverless-dns/trie#v0.0.14",
-    "aws-sdk": "^2.1233.0",
     "trie": "github:serverless-dns/trie#v0.0.14"
   },
   "devDependencies": {
