@@ -51,9 +51,13 @@ The build tooling is maintained in `hidefbi/dns-rules-builder`.
 
 ## Release process
 
-- Releases are built from a fixed configuration of 145 lists.
-- Each build is checked for the list count, contiguous list ids, empty lists and checksums,
-  then signed and verified.
+- Each list has a fixed numeric id. The id never changes between releases, so a selection
+  saved in the app stays valid.
+- Some ids are reserved for lists that are not published (their upstream is no longer
+  available). These ids are absent from `blocklists` and are not reused, so the ids in
+  `blocklists` can have gaps.
+- Each build is checked for the list count, the ids of the published lists, empty lists and
+  checksums, then signed and verified.
 - A release is published by hand after its build report is reviewed. Nothing is published
   automatically.
 - A weekly build runs on a schedule and never publishes. It opens a report for review.

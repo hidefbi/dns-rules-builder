@@ -61,6 +61,8 @@ function loadConfig(blocklistConfigPath) {
     const blocklistobj = JSON.parse(fileData);
 
     for (const [id, entry] of Object.entries(blocklistobj.conf)) {
+      // disabled entries keep their position (and so their id) but are not built
+      if (entry.pack.includes("dead") || entry.pack.includes("ignore")) continue;
       // string, must be uppercase
       const uid = empty(unames[id]) ? id + "" : unames[id].toUpperCase();
       // may be a str or a list, but normalize it to a list

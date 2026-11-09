@@ -105,11 +105,13 @@ assert result.returncode == 0 and 'Verified OK' in result.stdout, 'signature ver
 
 # README.md: static head from the builder repository plus the generated list table.
 conf = json.load(open(CFG))['conf']
+enabled = [(idx, e) for idx, e in enumerate(conf)
+           if not {'dead', 'ignore'} & set(e['pack'])]
 with open(README_HEAD, encoding='utf-8') as f:
     head = f.read().rstrip() + '\n'
-table = ['', '## Lists (%d)' % len(conf), '',
+table = ['', '## Lists (%d)' % len(enabled), '',
          '| # | List | Group | Upstream |', '|---:|---|---|---|']
-for idx, e in enumerate(conf):
+for idx, e in enabled:
     urls = e['url'] if isinstance(e['url'], list) else [e['url']]
     table.append('| %d | %s | %s | %s |' % (idx, e['vname'], e.get('group', ''), '<br>'.join(urls)))
 with open(p('README.md'), 'w', encoding='utf-8') as f:

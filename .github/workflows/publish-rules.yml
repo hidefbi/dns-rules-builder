@@ -68,10 +68,12 @@ jobs:
           import json
           conf = json.load(open('config.json'))['conf']
           n = int('${{ env.EXPECTED_LISTS }}')
-          assert len(conf) == n, f'list count {len(conf)} != {n}'
+          enabled = [e for e in conf if not {'dead', 'ignore'} & set(e['pack'])]
+          disabled = [e for e in conf if {'dead', 'ignore'} & set(e['pack'])]
+          assert len(enabled) == n, f'enabled list count {len(enabled)} != {n}'
           assert not any('id' in e for e in conf), 'config must not contain "id"; ids are positional'
-          assert not any({'dead', 'ignore'} & set(e['pack']) for e in conf), 'dead/ignore list found'
-          print('config ok:', len(conf), 'lists')
+          assert all(e['pack'] == ['dead'] for e in disabled), 'disabled entries must use only the dead pack'
+          print('config ok:', len(enabled), 'enabled,', len(disabled), 'disabled, total', len(conf))
           PY
 
       - name: Download lists
@@ -97,9 +99,13 @@ jobs:
           bc = json.load(open(f'{out}/basicconfig.json'))
           ft = json.load(open(f'{out}/filetag.json'))
           n = int('${{ env.EXPECTED_LISTS }}')
+          conf = json.load(open('config.json'))['conf']
+          # ids are the positions in config.json; disabled positions stay reserved and are not built
+          expected = [i for i, e in enumerate(conf) if not {'dead', 'ignore'} & set(e['pack'])]
           vals = sorted(v['value'] for v in ft.values())
+          assert len(expected) == n, f'expected ids {len(expected)} != {n}'
           assert bc['useCodec6'] is False, 'codec must be b8 (useCodec6 false)'
-          assert vals == list(range(n)), 'list ids must be contiguous 0..N-1 with no gaps'
+          assert vals == expected, 'built ids must equal the enabled positions in config.json'
           zero = [v['vname'] for v in ft.values() if v['entries'] == 0]
           assert not zero, f'lists with zero entries: {zero}'
           ts = int(bc['timestamp'].split('/')[1])

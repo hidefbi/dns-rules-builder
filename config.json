@@ -21,8 +21,8 @@
    "vname": "Safe Search Only",
    "group": "ParentalControl",
    "subg": "SafeSearch",
-   "format": "domains",
-   "url": "https://raw.githubusercontent.com/nextdns/no-safesearch/main/domains",
+   "format": "wildcard",
+   "url": "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/nosafesearch-onlydomains.txt",
    "pack": [],
    "level": []
   },
@@ -82,14 +82,10 @@
    "group": "ParentalControl",
    "subg": "Piracy",
    "format": [
-    "domains",
-    "domains",
-    "domains"
+    "wildcard"
    ],
    "url": [
-    "https://raw.githubusercontent.com/nextdns/piracy-blocklists/master/file-hosting",
-    "https://raw.githubusercontent.com/nextdns/bin-domains/main/hostnames",
-    "https://raw.githubusercontent.com/nextdns/bin-domains/main/domains"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
    ],
    "pack": [
     "file-hosts",
@@ -175,8 +171,12 @@
    "vname": "Torrent Clients",
    "group": "ParentalControl",
    "subg": "Piracy",
-   "format": "domains",
-   "url": "https://raw.githubusercontent.com/nextdns/piracy-blocklists/master/torrent-clients",
+   "format": [
+    "wildcard"
+   ],
+   "url": [
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
+   ],
    "pack": [
     "torrents",
     "piracy"
@@ -190,8 +190,12 @@
    "vname": "Torrent Trackers",
    "group": "ParentalControl",
    "subg": "Piracy",
-   "format": "domains",
-   "url": "https://raw.githubusercontent.com/nextdns/piracy-blocklists/master/torrent-trackers",
+   "format": [
+    "wildcard"
+   ],
+   "url": [
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
+   ],
    "pack": [
     "torrents",
     "piracy"
@@ -205,8 +209,12 @@
    "vname": "Torrent Websites",
    "group": "ParentalControl",
    "subg": "Piracy",
-   "format": "domains",
-   "url": "https://raw.githubusercontent.com/nextdns/piracy-blocklists/master/torrent-websites",
+   "format": [
+    "wildcard"
+   ],
+   "url": [
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
+   ],
    "pack": [
     "torrents",
     "piracy"
@@ -220,8 +228,12 @@
    "vname": "Usenet",
    "group": "ParentalControl",
    "subg": "Piracy",
-   "format": "domains",
-   "url": "https://raw.githubusercontent.com/nextdns/piracy-blocklists/master/usenet",
+   "format": [
+    "wildcard"
+   ],
+   "url": [
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
+   ],
    "pack": [
     "file-hosts",
     "piracy"
@@ -235,8 +247,12 @@
    "vname": "Warez",
    "group": "ParentalControl",
    "subg": "Piracy",
-   "format": "domains",
-   "url": "https://raw.githubusercontent.com/nextdns/piracy-blocklists/master/warez",
+   "format": [
+    "wildcard"
+   ],
+   "url": [
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/anti.piracy.txt"
+   ],
    "pack": [
     "file-hosts",
     "piracy"
@@ -326,7 +342,7 @@
    "format": "domains",
    "url": "https://raw.githubusercontent.com/nextdns/services/main/services/ebay",
    "pack": [
-    "shopping"
+    "dead"
    ],
    "level": [
     0
@@ -355,8 +371,12 @@
    "vname": "Snapchat",
    "group": "ParentalControl",
    "subg": "Services",
-   "format": "domains",
-   "url": "https://raw.githubusercontent.com/nextdns/services/main/services/snapchat",
+   "format": [
+    "wildcard"
+   ],
+   "url": [
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/social.txt"
+   ],
    "pack": [
     "socialmedia"
    ],
@@ -371,10 +391,10 @@
    "format": "domains",
    "url": "https://raw.githubusercontent.com/nextdns/services/main/services/spotify",
    "pack": [
-    "shopping"
+    "dead"
    ],
    "level": [
-    2
+    0
    ]
   },
   {
@@ -384,7 +404,7 @@
    "format": "domains",
    "url": "https://raw.githubusercontent.com/nextdns/services/main/services/steam",
    "pack": [
-    "gaming"
+    "dead"
    ],
    "level": [
     0
@@ -462,13 +482,9 @@
    "format": "domains",
    "url": "https://raw.githubusercontent.com/nextdns/services/main/services/youtube",
    "pack": [
-    "streams",
-    "google",
-    "youtube"
+    "dead"
    ],
    "level": [
-    1,
-    2,
     0
    ]
   },
@@ -2169,10 +2185,10 @@
     "https://raw.githubusercontent.com/nextdns/services/main/services/vk"
    ],
    "pack": [
-    "socialmedia"
+    "dead"
    ],
    "level": [
-    1
+    0
    ]
   },
   {
@@ -2188,10 +2204,10 @@
     "https://raw.githubusercontent.com/nextdns/services/main/services/vimeo"
    ],
    "pack": [
-    "streams"
+    "dead"
    ],
    "level": [
-    1
+    0
    ]
   },
   {
@@ -2199,12 +2215,10 @@
    "group": "ParentalControl",
    "subg": "Services",
    "format": [
-    "domains",
-    "domains"
+    "wildcard"
    ],
    "url": [
-    "https://raw.githubusercontent.com/nextdns/services/main/services/facebook",
-    "https://raw.githubusercontent.com/nextdns/services/main/services/instagram"
+    "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/wildcard/social.txt"
    ],
    "pack": [
     "socialmedia",

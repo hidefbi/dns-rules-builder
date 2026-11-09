@@ -112,6 +112,14 @@ The private key must not be committed. Only `public.pem` belongs in the reposito
 - Each list in `config.json` belongs to its upstream author and keeps that author's license.
   See the `url` field of each entry.
 
+## Disabled entries and shared URLs
+
+- An entry with `"pack": ["dead"]` is disabled. It is not downloaded, not built and not
+  published. Its position in `config.json` is kept, so the ids of later entries do not change.
+- `EXPECTED_LISTS` in the workflow is the number of enabled entries, not the length of `conf`.
+- The same URL may be used by more than one entry, for example when one upstream list covers
+  several former lists. Each entry keeps its own id. A URL repeated inside one entry is an error.
+
 ## Maintenance notes
 
 - Upload to S3 or R2 is no longer used. Publication goes to `hidefbi/rules-old` only.

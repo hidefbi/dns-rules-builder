@@ -47,7 +47,6 @@ def validFormat(fmt):
 
 def validConfig():
     global keyFormat
-    processedUrls = set()
 
     index = 0
     regex = re.compile(
@@ -90,6 +89,9 @@ def validConfig():
             print(f"Invalid vname {ent}")
             return False
 
+        # the same URL may be used by several entries (for example a shared
+        # hagezi list kept at more than one ID); only repeats inside one entry are invalid
+        entryUrls = set()
         totalUrls = 0
         totalFormats = 0
         # url is either a string or a list of strings
@@ -98,11 +100,11 @@ def validConfig():
                 print(f"Invalid str(url) in {ent}")
                 return False
 
-            if ent["url"] in processedUrls:
+            if ent["url"] in entryUrls:
                 print(f"Dup blocklist {ent}")
                 return False
             else:
-                processedUrls.add(ent["url"])
+                entryUrls.add(ent["url"])
             totalUrls = 1
         elif type(ent["url"]) is list:
             for u in ent["url"]:
@@ -110,11 +112,11 @@ def validConfig():
                     print(f"Invalid list(url) in {ent}")
                     return False
 
-                if u in processedUrls:
+                if u in entryUrls:
                     print(f"Dup blocklist {ent}")
                     return False
                 else:
-                    processedUrls.add(u)
+                    entryUrls.add(u)
                     totalUrls += 1
         else:
             print(f"Url must be str or list(str) in {ent}")
